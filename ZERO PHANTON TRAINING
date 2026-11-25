@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="es">
 <head>
@@ -142,3 +141,94 @@ button{border:1px solid var(--line);background:var(--panel2);color:var(--text);p
       <div class="field"><label for="winInput">Victorias de hoy</label><input id="winInput" type="number" min="0" step="1" value="0"></div>
       <div class="field"><label for="lossInput">Derrotas de hoy</label><input id="lossInput" type="number" min="0" step="1" value="0"></div>
     </div>
+    <div class="field"><label for="mistake">¿Qué error has cometido más?</label><select id="mistake"><option value="">Selecciona una opción</option><option>Me he adelantado demasiado</option><option>No sabía cuándo atacar o retroceder</option><option>Mal posicionamiento</option><option>He gastado mal mis recursos</option><option>He elegido mal el Brawler</option><option>Otro</option></select></div>
+    <div class="field"><label for="notes">Aprendizaje de hoy</label><textarea id="notes" placeholder="¿Qué has aprendido en esta sesión?"></textarea></div>
+    <div class="field"><label for="nextGoal">Objetivo para la próxima sesión</label><input id="nextGoal" type="text" placeholder="Ej.: no entrar solo en los enfrentamientos"></div>
+    <div class="actions"><button class="primary" id="save">Guardar sesión</button><button id="clearDay">Limpiar formulario</button></div>
+    <p class="notice" id="saveMsg" aria-live="polite">Cada miembro guarda sus estadísticas en su propio dispositivo y navegador.</p>
+    <h2 style="margin-top:18px">Últimas sesiones</h2><div id="history"><p class="notice">Todavía no hay sesiones guardadas.</p></div>
+  </section>
+  <div class="footer">ZΞRO么PHANTOM · CONSTANCIA &gt; JUGAR POR JUGAR</div>
+</div>
+<nav class="nav"><a href="#inicio"><span>⌂</span>Inicio</a><a href="#entreno"><span>◷</span>Rutina</a><a href="#ejercicios"><span>◎</span>Ejercicios</a><a href="#brawlers"><span>✦</span>Brawlers</a><a href="#estadisticas"><span>▥</span>Stats</a></nav>
+<script>
+(()=>{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const KEY='roadToLeyendaV2';
+let data={sessions:0,wins:0,losses:0,checks:{},logs:[],exercises:{},goals:{}};
+try{data={...data,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){}
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){$('#saveMsg').textContent='No se pudieron guardar los datos en este navegador.'}};
+function updateStats(){
+ $('#sessions').textContent=data.sessions||0;$('#wins').textContent=data.wins||0;$('#losses').textContent=data.losses||0;
+ const total=(data.wins||0)+(data.losses||0);$('#rate').textContent=(total?Math.round(data.wins/total*100):0)+'%';
+}
+function updateProgress(){
+ const blocks=$$('.block[data-block]');let done=0;
+ blocks.forEach(b=>{const checks=$$('input[type=checkbox]',b);if(checks.length&&checks.every(c=>c.checked))done++});
+ $('#overall').style.width=(done/blocks.length*100)+'%';$('#progressText').textContent=done+' de '+blocks.length+' bloques completados';
+}
+$$('.block[data-block]').forEach(b=>{
+ const id=b.dataset.block;
+ $$('input[type=checkbox]',b).forEach((c,i)=>{
+  const key=id+'-'+i;c.checked=!!data.checks?.[key];c.closest('.task')?.classList.toggle('done',c.checked);
+  c.addEventListener('change',()=>{data.checks=data.checks||{};data.checks[key]=c.checked;c.closest('.task')?.classList.toggle('done',c.checked);persist();updateProgress()});
+ });
+});
+$$('.exercise').forEach((c,i)=>{c.checked=!!data.exercises?.[i];c.addEventListener('change',()=>{data.exercises=data.exercises||{};data.exercises[i]=c.checked;persist()})});
+function renderGoals(){
+ const list=$('#goalList');list.querySelectorAll('.goal.custom').forEach(n=>n.remove());
+ (data.customGoals||[]).forEach((g,i)=>{
+  const label=document.createElement('label');label.className='goal custom';
+  const input=document.createElement('input');input.type='checkbox';input.className='goalcheck';input.checked=!!data.goals?.['custom-'+i];
+  const span=document.createElement('span');span.textContent=g;
+  input.addEventListener('change',()=>{data.goals=data.goals||{};data.goals['custom-'+i]=input.checked;persist()});
+  label.append(input,span);list.append(label);
+ });
+ $$('.goalcheck:not(.custom input)').forEach((c,i)=>{c.checked=!!data.goals?.['base-'+i];c.onchange=()=>{data.goals=data.goals||{};data.goals['base-'+i]=c.checked;persist()}});
+}
+$('#addGoal').addEventListener('click',()=>{
+ const value=$('#customGoal').value.trim();if(!value)return;
+ data.customGoals=data.customGoals||[];data.customGoals.push(value);$('#customGoal').value='';persist();renderGoals();
+});
+function renderHistory(){
+ const host=$('#history');host.innerHTML='';
+ const logs=(data.logs||[]).slice(-5).reverse();
+ if(!logs.length){host.innerHTML='<p class="notice">Todavía no hay sesiones guardadas.</p>';return}
+ logs.forEach(log=>{
+  const div=document.createElement('div');div.className='log';
+  const title=document.createElement('b');title.textContent=log.date+' · '+log.wins+'V / '+log.losses+'D';
+  div.append(title);
+  if(log.mistake){const p=document.createElement('div');p.className='muted';p.textContent='Error: '+log.mistake;div.append(p)}
+  if(log.goal){const p=document.createElement('div');p.className='muted';p.textContent='Próximo objetivo: '+log.goal;div.append(p)}
+  host.append(div);
+ });
+}
+updateStats();updateProgress();renderGoals();renderHistory();
+$$('.block[data-block]').forEach(b=>{
+ const display=$('[data-timer]',b),start=$('.start',b),reset=$('.reset',b);
+ const initial=Number(display.dataset.timer);let remaining=initial,interval=null,endAt=0;
+ function render(){const n=Math.max(0,remaining);display.textContent=String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+ function pause(){if(interval)clearInterval(interval);interval=null;remaining=Math.max(0,Math.ceil((endAt-Date.now())/1000));render();start.textContent='Continuar'}
+ start.addEventListener('click',()=>{
+  if(interval){pause();return}
+  if(remaining<=0)remaining=initial;
+  endAt=Date.now()+remaining*1000;start.textContent='Pausar';
+  interval=setInterval(()=>{
+   remaining=Math.max(0,Math.ceil((endAt-Date.now())/1000));render();
+   if(remaining<=0){clearInterval(interval);interval=null;start.textContent='Reiniciar';display.textContent='¡Completado!';}
+  },250);
+ });
+ reset.addEventListener('click',()=>{if(interval)clearInterval(interval);interval=null;remaining=initial;render();start.textContent='Iniciar'});
+});
+$('#save').addEventListener('click',()=>{
+ const w=Math.max(0,parseInt($('#winInput').value)||0),l=Math.max(0,parseInt($('#lossInput').value)||0);
+ if(w+l===0&&!$('#notes').value.trim()&&!$('#nextGoal').value.trim()){ $('#saveMsg').textContent='Añade resultados o una nota antes de guardar.';return}
+ data.sessions=(data.sessions||0)+1;data.wins=(data.wins||0)+w;data.losses=(data.losses||0)+l;
+ data.logs=data.logs||[];data.logs.push({date:new Date().toLocaleDateString('es-ES'),wins:w,losses:l,mistake:$('#mistake').value,notes:$('#notes').value,goal:$('#nextGoal').value});
+ persist();updateStats();renderHistory();$('#winInput').value=0;$('#lossInput').value=0;$('#mistake').value='';$('#notes').value='';$('#nextGoal').value='';$('#saveMsg').textContent='Sesión guardada. ¡Buen trabajo!';
+});
+$('#clearDay').addEventListener('click',()=>{$('#winInput').value=0;$('#lossInput').value=0;$('#mistake').value='';$('#notes').value='';$('#nextGoal').value='';$('#saveMsg').textContent='Formulario limpio.'});
+})();
+</script>
+</body>
+</html>
