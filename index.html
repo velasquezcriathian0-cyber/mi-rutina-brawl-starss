@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111018">
+<title>Road to Legendario I</title>
+<style>
+:root{color-scheme:dark;--bg:#111018;--panel:#1b1925;--panel2:#242131;--text:#f5f2ff;--muted:#aaa4bb;--purple:#a78bfa;--gold:#e8c875;--line:#373247;--green:#8ed9ae}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%,#29203d 0,transparent 34%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:760px;margin:auto;padding:24px 16px 48px}.eyebrow{color:var(--purple);font-size:.75rem;font-weight:800;letter-spacing:.16em}
+h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1.03;margin:10px 0}h2{font-size:1.08rem;margin:0 0 12px}
+.sub{color:var(--muted);margin:10px 0 22px}.panel{background:linear-gradient(145deg,var(--panel),#181622);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 10px 28px #0002}
+.topline,.between{display:flex;align-items:center;justify-content:space-between;gap:12px}.pill{font-size:.72rem;color:var(--gold);border:1px solid #655638;padding:4px 9px;border-radius:99px;font-weight:700}
+.big{font-size:2rem;color:var(--gold);font-weight:800}.bar{height:10px;background:#373247;border-radius:99px;overflow:hidden;margin:10px 0 5px}.fill{height:100%;width:0;background:linear-gradient(90deg,#8061d9,var(--purple));border-radius:99px;transition:width .2s}
+small,.muted{color:var(--muted)}.seg{display:flex;gap:8px;margin-top:10px}.seg button,.action{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 13px;border-radius:11px;font-weight:700;cursor:pointer}.seg button.active{background:#392d59;border-color:var(--purple);color:#e8ddff}
+.task{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.task:last-child{border:0}.task input{accent-color:var(--purple);width:19px;height:19px;margin-top:3px;flex-shrink:0}.task label{flex:1;cursor:pointer}.task strong{display:block}.time{color:var(--gold);font-size:.8rem;white-space:nowrap}.task.done strong{text-decoration:line-through;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}.tag{background:#302744;color:#e4d8ff;padding:7px 11px;border-radius:10px;font-size:.9rem}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stats label{display:block;color:var(--muted);font-size:.85rem;margin-bottom:5px}input[type=number],textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:11px;font:inherit}textarea{resize:vertical;min-height:90px}
+.rule{padding:8px 0;color:#ded9e9}.rule span{margin-right:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.action.primary{background:#6d50b5;border-color:#9275dc}.action.danger{color:#ffb9b9}
+footer{text-align:center;color:var(--muted);font-size:.78rem;padding:12px}
+@media(min-width:600px){main{padding-top:40px}.panel{padding:22px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="topline"><span class="eyebrow">RANKED TRAINING</span><span class="pill">TEMPORADA ACTUAL</span></div>
+  <h1>ROAD TO<br><span style="color:var(--gold)">LEGENDARIO I</span></h1>
+  <p class="sub">Tu entrenamiento personal de Brawl Stars. Una buena decisión cada partida.</p>
+
+  <section class="panel">
+    <div class="between"><h2>Progreso de la rutina</h2><div class="big" id="percent">0%</div></div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <small id="count">0 de 9 ejercicios completados</small>
+  </section>
+
+  <section class="panel">
+    <div class="between"><h2>Tipo de sesión</h2><span class="pill">90 MIN</span></div>
+    <div class="seg" role="group" aria-label="Tipo de sesión">
+      <button class="active" data-mode="Mixto">Mixto</button><button data-mode="Solo">Solo</button><button data-mode="Dúo">Dúo</button>
+    </div>
+    <div id="tasks"></div>
+    <div class="actions"><button class="action" id="reset">Reiniciar rutina</button></div>
+  </section>
+
+  <section class="panel">
+    <h2>Tus Brawlers principales</h2>
+    <p class="muted" style="margin-top:-5px">Los que más dominas actualmente</p>
+    <div class="tags"><span class="tag">Emz</span><span class="tag">Sandy</span><span class="tag">Colette</span><span class="tag">Squeak</span><span class="tag">Nori</span><span class="tag">Poco</span></div>
+  </section>
+
+  <section class="panel">
+    <h2>Registro de sesión</h2>
+    <div class="stats">
+      <div><label for="wins">Victorias</label><input id="wins" type="number" min="0" inputmode="numeric" value="0"></div>
+      <div><label for="losses">Derrotas</label><input id="losses" type="number" min="0" inputmode="numeric" value="0"></div>
+    </div>
+    <label for="notes" style="display:block;margin:14px 0 6px">¿Qué has aprendido hoy?</label>
+    <textarea id="notes" placeholder="Ej.: Hoy he evitado avanzar solo..."></textarea>
+    <small>Este registro se guarda en este navegador.</small>
+  </section>
+
+  <section class="panel">
+    <h2>Reglas para subir</h2>
+    <div class="rule"><span>⏸️</span> 2 derrotas seguidas: pausa de 5–10 minutos.</div>
+    <div class="rule"><span>🛑</span> 3 derrotas seguidas: termina el bloque competitivo.</div>
+    <div class="rule"><span>🎯</span> Prioriza buenas decisiones, no solo ganar.</div>
+  </section>
+  <footer>ROAD TO LEGENDARIO I · Entrena con cabeza</footer>
+</main>
+<script>
+const exercises=[
+{id:"a",time:"5 min",name:"Calentamiento",desc:"Juega una partida tranquila y recupera sensaciones.",kind:"both"},
+{id:"b",time:"5 min",name:"Movimiento",desc:"Practica esquivar y moverte entre coberturas.",kind:"both"},
+{id:"c",time:"15 min",name:"Ranked en solitario",desc:"Prioriza posición y control del mapa. No persigas eliminaciones.",kind:"solo"},
+{id:"d",time:"15 min",name:"Decisiones",desc:"Antes de atacar, revisa vida, munición, enemigos y ruta de escape.",kind:"solo"},
+{id:"e",time:"10 min",name:"Descanso",desc:"Desconecta un momento. Nada de jugar por obligación.",kind:"both"},
+{id:"f",time:"15 min",name:"Ranked en dúo",desc:"Hablad del draft y elegid Brawlers que combinen.",kind:"duo"},
+{id:"g",time:"15 min",name:"Coordinación",desc:"Apoyad las jugadas del otro y evitad entrar por separado.",kind:"duo"},
+{id:"h",time:"5 min",name:"Revisión",desc:"Piensa en una muerte evitable y qué podrías haber hecho.",kind:"both"},
+{id:"i",time:"5 min",name:"Aprendizaje",desc:"Identifica qué decisión repetirás o cambiarás en la próxima sesión.",kind:"both"}
+];
+const $=id=>document.getElementById(id);
+let mode="Mixto",completed=new Set(JSON.parse(localStorage.getItem("bs_done")||"[]"));
+function save(){localStorage.setItem("bs_done",JSON.stringify([...completed]));}
+function render(){
+ const shown=exercises.filter(x=>mode==="Mixto"||x.kind==="both"||x.kind===mode.toLowerCase());
+ $("tasks").innerHTML=shown.map(x=>`<div class="task ${completed.has(x.id)?"done":""}"><input type="checkbox" id="task-${x.id}" data-id="${x.id}" ${completed.has(x.id)?"checked":""}><label for="task-${x.id}"><strong>${x.name}</strong><small>${x.desc}</small></label><span class="time">${x.time}</span></div>`).join("");
+ document.querySelectorAll("[data-id]").forEach(el=>el.addEventListener("change",()=>{el.checked?completed.add(el.dataset.id):completed.delete(el.dataset.id);save();render();}));
+ const pct=Math.round(completed.size/exercises.length*100);$("percent").textContent=pct+"%";$("fill").style.width=pct+"%";$("count").textContent=completed.size+" de 9 ejercicios completados";
+}
+document.querySelectorAll("[data-mode]").forEach(btn=>btn.addEventListener("click",()=>{mode=btn.dataset.mode;document.querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b===btn));render();}));
+$("reset").addEventListener("click",()=>{completed.clear();save();render();});
+["wins","losses","notes"].forEach(id=>{const key="bs_"+id;$(id).value=localStorage.getItem(key)|| (id==="notes"?"":"0");$(id).addEventListener("input",()=>localStorage.setItem(key,$(id).value));});
+render();
+</script>
+</body>
+</html>
